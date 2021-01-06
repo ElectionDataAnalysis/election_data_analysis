@@ -33,7 +33,7 @@ def plot(type, data, fig_type, target_dir):
         )
         fig.update_layout(
             title=dict(
-                text=f"""{data['contest']}<br>{data['subdivision_type']}<br>{data['count_item_type']}""",
+                text=f"""{data['contest']}|{data['subdivision_type']}|{data['count_item_type']}<br>score: {data['score']}<br>votes_at_stake_margin: {data['votes_at_stake_raw']/data['margin_raw']}""",
                 x=0.5,
                 font=dict(family="Courier New, monospace", size=18),
             ),
@@ -43,8 +43,9 @@ def plot(type, data, fig_type, target_dir):
     image_dir = os.path.join(target_dir, "images")
     x_clean = data["x"].replace(" ", "-").replace("/", "") 
     y_clean = data["y"].replace(" ", "-").replace("/", "") 
+    contest_clean = data["contest"].replace(" ", "-").replace("/", "")
     file_name = (
-        f'{x_clean}_{y_clean}.{fig_type}'
+        f'{contest_clean}_{data["count_item_type"]}_{x_clean}_{y_clean}.{fig_type}'
     )
     file_path = os.path.join(image_dir, file_name)
 
