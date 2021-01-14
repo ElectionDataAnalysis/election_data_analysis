@@ -2,7 +2,7 @@ from election_data_analysis import database as db, juris_and_munger as jm, user_
 from election_data_analysis import user_interface as ui
 from election_data_analysis import munge as m
 from sqlalchemy.orm import sessionmaker
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 import datetime
 import os
 import pandas as pd
@@ -46,13 +46,16 @@ sdl_pars_opt = [
 multi_data_loader_pars = [
     "results_dir",
     "archive_dir",
-    "jurisdictions_dir",
-    "mungers_dir",
 ]
 
 optional_mdl_pars = [
     "unloaded_dir",
+    "mungers_dir",  # for backwards compatibility if load_info_path not given
+    "jurisdictions_dir",  # for backwards compatibility if load_info_path not given
+    "load_info_path",  # if mungers_dir and jurisdictions_dir are gotten rid of, this will be required
 ]
+load_info_path_error = """Missing 'load_info_path' parameter, 
+whose value should be the parent of the mungers and jurisdiction folders."""
 
 prep_pars = [
     "name",
@@ -78,11 +81,17 @@ class DataLoader:
             param_file="run_time.ini",
             header="election_data_analysis",
         )
+        
+        # for backward compatibility. We'd like to require load_info_path,
+        # # but older run_time.ini files will have paths to mungers & jurisdictions directories separately
+        if not d["load_info_path"] and ((not d["mungers_dir"]) or (not d["jurisdictions_dir"])):
+            err = ui.add_new_error(err, "ini", "run_time.ini", load_info_path_error)
+
         if err:
             print("DataLoader object not created.")
             ui.report(err)
             return None
-
+        
         return super().__new__(cls)
 
     def __init__(self):
@@ -96,6 +105,16 @@ class DataLoader:
 
         # create db if it does not already exist and have right tables
         err = db.create_db_if_not_ok()
+
+        # define useful paths
+        if self.d["load_info_path"]:
+            self.mungers_dir = os.path.join(self.d["load_info_path"], "mungers")
+            self.jurisdictions_dir = os.path.join(self.d["load_info_path"], "jurisdictions")
+            self.ini_dir = os.path.join(self.d["load_info_path"], "ini_files_for_results")
+        else:  # for backwards compatibility, assume ini_dir is in same path as mungers_dir
+            self.mungers_dir = self.d["mungers_dir"]
+            self.jurisdictions_dir = self.d["jurisdictions_dir"]
+            self.ini_dir = os.path.join(Path(self.d["mungers_dir"]).parent, "ini_files_for_results")
 
         # connect to db
         self.engine = None  # will be set in connect_to_db
@@ -149,10 +168,6 @@ class DataLoader:
         err = None
         success = True
 
-        # set locations for error reporting
-        # TODO get rid of mungers_path variable, use self.d directly
-        mungers_path = self.d["mungers_dir"]
-
         # define directory for archiving successfully loaded files (and storing warnings)
         db_param, new_err = ui.get_parameters(
             required_keys=["dbname"], param_file="run_time.ini", header="postgresql"
@@ -173,55 +188,23 @@ class DataLoader:
         }
 
         # list .ini files and pull their jurisdiction_paths
-        par_files = [f for f in os.listdir(self.d["results_dir"]) if f[-4:] == ".ini"]
-
-        # no .ini files found, return error
-        if not par_files:
+        good_ini_paths, juris_by_ini, election_by_ini, new_err = ui.all_ini_file_paths(
+            self, election_jurisdiction_list=election_jurisdiction_list
+        )
+        if not good_ini_paths:
             err = ui.add_new_error(
                 err,
                 "file",
-                self.d["results_dir"],
+                self.ini_dir,
                 f"No <results>.ini files found in directory. No results files will be processed.",
             )
             err = ui.report(err)
             return err, False
-
-        params = dict()
-        juris_directory = dict()
-
-        # For each par_file get params or throw error
-        good_par_files = list()
-        for f in par_files:
-            # grab parameters
-            par_file = os.path.join(self.d["results_dir"], f)
-            params[f], new_err = ui.get_parameters(
-                required_keys=sdl_pars_req,
-                optional_keys=sdl_pars_opt,
-                param_file=par_file,
-                header="election_data_analysis",
-            )
-            if new_err:
-                err = ui.consolidate_errors([err, new_err])
-            if not ui.fatal_error(new_err):
-                ###########
-                # for backwards compatibility
-                if not params[f]["jurisdiction_directory"]:
-                    params[f]["jurisdiction_directory"] = Path(
-                        params[f]["jurisdiction_path"]
-                    ).name
-                ###########
-                if election_jurisdiction_list:
-                    if (
-                        params[f]["election"],
-                        params[f]["top_reporting_unit"],
-                    ) in election_jurisdiction_list:
-                        good_par_files.append(f)
-                else:
-                    good_par_files.append(f)
-                juris_directory[f] = params[f]["jurisdiction_directory"]
+        else:
+            err = ui.consolidate_errors([err, new_err])
 
         # group .ini files by jurisdiction_directory name
-        jurisdiction_dirs = list({juris_directory[f] for f in good_par_files})
+        jurisdiction_dirs = list({juris_by_ini[f] for f in good_ini_paths})
         jurisdiction_dirs.sort()
 
         # for each jurisdiction, create Jurisdiction or throw error
@@ -230,7 +213,7 @@ class DataLoader:
         for jp in jurisdiction_dirs:
             # create and load jurisdiction or throw error
             juris[jp], new_err = ui.pick_juris_from_filesystem(
-                juris_path=os.path.join(self.d["jurisdictions_dir"], jp),
+                juris_path=os.path.join(self.jurisdictions_dir, jp),
                 err=None,
                 check_files=load_jurisdictions,
             )
@@ -269,14 +252,14 @@ class DataLoader:
 
         # process all good parameter files with good jurisdictions
         for jp in good_jurisdictions:
-            good_files = [f for f in good_par_files if juris_directory[f] == jp]
+            good_files = [Path(p).name for p in good_ini_paths if juris_by_ini[p] == jp]
             print(f"Processing results files specified in {good_files}")
             for f in good_files:
                 sdl, new_err = check_and_init_singledataloader(
                     self.d["results_dir"],
-                    f,
+                    os.path.join(self.ini_dir, jp, f),
                     self.session,
-                    mungers_path,
+                    self.mungers_dir,
                     juris[jp],
                 )
                 if new_err:
@@ -364,7 +347,7 @@ class SingleDataLoader:
     def __init__(
         self,
         results_dir: str,
-        par_file_name: str,
+        par_file_path: str,  # the absolute path
         session,
         mungers_path: str,
         juris: jm.Jurisdiction,
@@ -373,14 +356,13 @@ class SingleDataLoader:
         self.session = session
         self.results_dir = results_dir
         self.juris = juris
-        self.par_file_name = par_file_name
+        self.par_file_name = Path(par_file_path).name
 
         # grab parameters (known to exist from __new__, so can ignore error variable)
-        par_file = os.path.join(results_dir, par_file_name)
         self.d, dummy_err = ui.get_parameters(
             required_keys=sdl_pars_req,
             optional_keys=sdl_pars_opt,
-            param_file=par_file,
+            param_file=par_file_path,
             header="election_data_analysis",
         )
 
@@ -583,9 +565,12 @@ def check_par_file_elements(
     # for each munger,
     for mu in ini_d["munger_name"].split(","):
         # check any constant_over_file elements are defined in .ini file
-        munger_file = os.path.join(mungers_path,f"{mu}.munger")
+        munger_file = os.path.join(mungers_path, f"{mu}.munger")
         params, p_err = ui.get_parameters(
-            required_keys=list(), param_file=munger_file, optional_keys=["constant_over_file"], header="format",
+            required_keys=list(),
+            param_file=munger_file,
+            optional_keys=["constant_over_file"],
+            header="format",
         )
         if p_err:
             err = ui.consolidate_errors([err, p_err])
@@ -602,7 +587,7 @@ def check_par_file_elements(
 
 def check_and_init_singledataloader(
     results_dir: str,
-    par_file_name: str,
+    par_file: str,  # the whole path
     session,
     mungers_path: str,
     juris: jm.Jurisdiction,
@@ -610,7 +595,6 @@ def check_and_init_singledataloader(
     """Return SDL if it could be successfully initialized, and
     error dictionary (including munger errors noted in SDL initialization)"""
     # test parameters
-    par_file = os.path.join(results_dir, par_file_name)
     sdl = None
     d, err = ui.get_parameters(
         required_keys=sdl_pars_req,
@@ -622,14 +606,14 @@ def check_and_init_singledataloader(
         return sdl, err
 
     # check consistency of munger and .ini file regarding elements to be read from ini file
-    new_err_2 = check_par_file_elements(d, mungers_path, par_file_name)
+    new_err_2 = check_par_file_elements(d, mungers_path, par_file)
     if new_err_2:
         err = ui.consolidate_errors([err, new_err_2])
         sdl = None
     if not ui.fatal_error(new_err_2):
         sdl = SingleDataLoader(
             results_dir,
-            par_file_name,
+            par_file,
             session,
             mungers_path,
             juris,
@@ -642,13 +626,14 @@ class JurisdictionPrepper:
     def __new__(cls):
         """Checks if parameter file exists and is correct. If not, does
         not create JurisdictionPrepper object."""
-        for param_file, required in [
-            ("jurisdiction_prep.ini",prep_pars),
-            ("run_time.ini", ["jurisdictions_dir","mungers_dir"]),
+        for param_file, required, opt in [
+            ("jurisdiction_prep.ini", prep_pars, []),
+            ("run_time.ini", [], ["load_info_path", "jurisdictions_dir", "mungers_dir"]),
         ]:
             try:
                 d, parameter_err = ui.get_parameters(
                     required_keys=required,
+                    optional_keys=opt,
                     param_file=param_file,
                     header="election_data_analysis",
                 )
@@ -664,6 +649,11 @@ class JurisdictionPrepper:
                 print(parameter_err)
                 print("JurisdictionPrepper object not created.")
                 return None
+            if param_file == "run_time.ini":
+                # need load_info_path parameter (or separate for backwards compatibility)
+                if not d["load_info_path"] and ((not d["mungers_dir"]) or (not d["jurisdictions_dir"])):
+                    print(f"{load_info_path_error}\nJurisdictionPrepper object not created.")
+
         return super().__new__(cls)
 
     def new_juris_files(self):
@@ -963,9 +953,10 @@ class JurisdictionPrepper:
         err_list = list()
         dl = DataLoader()
         juris = jm.Jurisdiction(self.d["jurisdiction_path"])
+        par_file_path = os.path.join(dl.ini_dir, juris.short_name, par_file_name)
         sdl, err = check_and_init_singledataloader(
-            dl.d["results_dir"],
-            par_file_name, dl.session, dl.d["mungers_dir"], juris)
+            dl.d["results_dir"], par_file_path, dl.session, dl.mungers_dir, juris
+        )
 
         for mu in sdl.munger_list:
             # get parameters
@@ -1049,19 +1040,23 @@ class JurisdictionPrepper:
     def __init__(self):
         self.d = dict()
         # get parameters from jurisdiction_prep.ini and run_time.ini
-        for param_file, required in [
-            ("jurisdiction_prep.ini",prep_pars),
-            ("run_time.ini", ["jurisdictions_dir","mungers_dir"]),
+        for param_file, required, opt in [
+            ("jurisdiction_prep.ini",prep_pars, []),
+            ("run_time.ini", [], ["load_info_path", "mungers_dir", "jurisdictions_dir"]),
         ]:
             d, parameter_err = ui.get_parameters(
                 required_keys=required,
+                optional_keys=opt,
                 param_file=param_file,
                 header="election_data_analysis",
             )
             self.d.update(d)
         # calculate full jurisdiction path from other info
-        self.d["jurisdiction_path"] = os.path.join(self.d["jurisdictions_dir"],self.d["name"].replace(" ","-"))
-
+        hyphenated_name = self.d["name"].replace(" ","-")
+        if d["load_info_path"]:
+            self.d["jurisdiction_path"] = os.path.join(self.d["load_info_path"], "jurisdictions", hyphenated_name)
+        else:
+            self.d["jurisdiction_path"] = os.path.join(self.d["jurisdictions_dir"], hyphenated_name)
         self.state_house = int(self.d["count_of_state_house_districts"])
         self.state_senate = int(self.d["count_of_state_senate_districts"])
         self.congressional = int(self.d["count_of_us_house_districts"])
@@ -1688,3 +1683,54 @@ def load_results_file(
         )
         return err
     return err
+
+def all_ini_file_paths(
+        dl: DataLoader,
+        election_jurisdiction_list: Optional[List[Tuple[Optional[str], str]]] = None,
+) -> (List[str], Dict[str, str], Dict[str, str], Optional[dict]):
+    """Lists full paths of all ini files that correspond to files in the results directory for <dl>.
+    If <election> or <jurisdiction> is specified, limit to files for that election and jurisdiction."""
+    good_ini_paths = list()
+    juris_directory = dict()
+    election_dictionary = dict()
+    err = None
+
+    # define list of desired jurisdictions-election pairs (or jurisdiction-None pairs if election doesn't matter)
+    if not election_jurisdiction_list:
+        election_jurisdiction_list = [
+            (None, j)
+            for j in os.listdir(dl.d["results_dir"])
+            if os.path.isdir(os.path.join(dl.d["results_dir"], j))
+        ]
+
+    for (election, j) in election_jurisdiction_list:
+        if os.path.isdir(os.path.join(dl.ini_dir, j)):
+            # get ini files corresponding to results files in j
+            all_ini_paths = [
+                os.path.join(dl.ini_dir, j, f)
+                for f in os.listdir(os.path.join(dl.ini_dir, j)) if f[-4:] == ".ini"
+            ]
+            for f in all_ini_paths:
+                # grab parameters
+                ini_d, new_err = ui.get_parameters(
+                    required_keys=["election", "results_file", "jurisdiction_directory"],
+                    param_file=f,
+                    header="election_data_analysis",
+                )
+                if new_err:
+                    err = ui.add_new_error(
+                        err,
+                        "warn-ini",
+                        Path(f).name,
+                        "election, jurisdiction_directory or results_file missing",
+                    )
+                elif os.path.isfile(os.path.join(dl.d["results_dir"], ini_d["results_file"])):
+                    # if election is unspecified, or if election in file matches desired election
+                    if (not election) or ini_d["election"] == election:
+                        # add to list of good paths
+                        good_ini_paths.append(f)
+                        juris_directory[f] = ini_d["jurisdiction_directory"]
+                        election_dictionary[f] = ini_d["election"]
+
+    return good_ini_paths, juris_directory, election_dictionary, err
+

@@ -36,31 +36,6 @@ def io(argv) -> Optional[list]:
     return ej_list
 
 
-def grab_ini_files(results_dir, path_to_repo):
-    jurisdictions = [
-        name for name in os.listdir(results_dir) if os.path.isdir(os.path.join(results_dir, name))
-    ]
-    path_to_ini = os.path.join(path_to_repo, "src", "ini_files_for_results")
-    for j in jurisdictions:
-        copy_path = os.path.join(path_to_ini, j)
-        if os.path.isdir(copy_path):
-            copy_tree(copy_path, results_dir)
-
-    par_files = [f for f in os.listdir(results_dir) if f[-4:] == ".ini"]
-
-    # if the results file not found, delete the .ini file & warn user
-    for par_file in par_files:
-        d, err = ui.get_parameters(
-            required_keys=["results_file"],
-            header="election_data_analysis",
-            param_file=os.path.join(results_dir, par_file),
-        )
-        # delete any .ini files whose results file is not found
-        if not os.path.isfile(os.path.join(results_dir,d["results_file"])):
-            os.remove(os.path.join(results_dir, par_file))
-    return
-
-
 def optional_remove(dl: eda.DataLoader, dir_path: str) -> (Optional[dict], bool):
     err = None
     db_removed = False
@@ -116,9 +91,6 @@ def get_testing_data(
 
     else:
         print(f"Tests will use data in existing directory: {Path(results_dir).absolute()}")
-    if path_to_repo is None:
-        path_to_repo = Path(__file__).resolve().parents[1].absolute()
-    grab_ini_files(results_dir, path_to_repo)
     return
 
 
@@ -144,8 +116,8 @@ def run2(
 
     if load_data:
         get_testing_data(
-            url = "https://github.com/ElectionDataAnalysis/TestingData.git",
-            results_dir ="TestingData",
+            url="https://github.com/ElectionDataAnalysis/TestingData.git",
+            results_dir="TestingData",
         )
 
     # restrict elections and jurisdictions to those given (if given)
@@ -186,11 +158,6 @@ def run2(
             test_dir, dbname, election_jurisdiction_list=election_jurisdiction_list
         )
         print(f"test results:\n{result}")
-
-        # remove all .ini files
-        par_files = [x for x in os.listdir("TestingData") if x[-4:] == ".ini"]
-        for f in par_files:
-            os.remove(os.path.join("TestingData",f))
 
         if load_data:
             err, db_removed = optional_remove(dl, "TestingData")

@@ -7,7 +7,7 @@ from pandas.errors import ParserError
 import os
 from pathlib import Path
 from election_data_analysis import juris_and_munger as jm
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 import datetime
 import csv
 import numpy as np
@@ -897,22 +897,13 @@ def confirm_essential_info(
 
 
 def election_juris_list(dir_path: str) -> list:
-    """Return list of all election-jurisdiction pairs in .ini files in the given directory"""
-    ej_list = []
-    for f in os.listdir(dir_path):
-        if f[-4:] == ".ini":
-            d, err = get_parameters(
-                param_file=os.path.join(dir_path, f),
-                header="election_data_analysis",
-                required_keys=["election", "top_reporting_unit"],
-            )
-            # if parameters were read without error
-            if not err:
-                # and if the pair is not already in the list
-                if (d["election"], d["top_reporting_unit"]) not in ej_list:
-                    # append the pair from the param file to the list
-                    ej_list.append((d["election"], d["top_reporting_unit"]))
-    return ej_list
+    """Return list of all election-jurisdiction pairs in .ini files
+    corresponding to results files in the given directory.
+    Assumes results are in folders labeled by jurisdiction name."""
+    dl = e.DataLoader()
+    dl.change_dir("results_dir", dir_path)
+    good_ini_paths, juris_by_ini, election_by_ini, err = e.all_ini_file_paths(dl)
+    return list({(election_by_ini[f], juris_by_ini[f]) for f in good_ini_paths})
 
 
 def reload_juris_election(
@@ -979,7 +970,10 @@ def reload_juris_election(
     election_id = db.name_to_id(dl.session, "Election", election_name)
     juris_id = db.name_to_id(dl.session, "ReportingUnit", juris_name)
 
-    # Move *.ini and results files for juris-election pair to 'unloaded' directory
+    # Move results files (and any .ini files) for juris-election pair to 'unloaded' directory
+    # TODO here are no .ini files in the archive_directory,
+    #  so [f for f in os.listdir(archive_directory) if f[-4:] == ".ini"]
+    #  below is probably empty. So need another way to identify and move results files.
     archive_directory = dl.d["archive_dir"]
     if dl.d["unloaded_dir"]:
         unloaded_directory = dl.d["unloaded_dir"]
