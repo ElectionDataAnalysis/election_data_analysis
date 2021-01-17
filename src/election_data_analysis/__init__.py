@@ -287,11 +287,9 @@ class DataLoader:
                     # if move_files == True and no fatal load error,
                     if move_files and not ui.fatal_error(load_error):
                         # archive files
-                        ui.archive_from_param_file(
-                            f, self.d["results_dir"], success_dir
-                        )
+                        ui.archive(sdl.d["results_file"], self.d["results_dir"], success_dir)
                         print(
-                            f"\tArchived {f} and its results file after successful load "
+                            f"\tArchived {sdl.d['results_file']} and its results file after successful load "
                             f"via mungers {sdl.d['munger_name']}.\n"
                         )
                     # if there was a fatal load error
@@ -332,12 +330,23 @@ class DataLoader:
         return err, success
 
     def remove_data(
-        self, election_id: int, juris_id: int, active_confirm: bool
+        self,
+            election_id: int,
+            juris_id: int,
+            active_confirm: bool = False,
+            archive_directory_path: Optional[str] = None,
+            unloaded_directory_path: Optional[str] = None,
     ) -> Optional[str]:
-        """Remove from the db all data for the given <election_id> in the given <juris>"""
+        """Remove from the db all data for the given <election_id> in the given <juris>.
+        If archive directory path is given, move corresponding results files from archive
+        to 'unloaded' directory"""
         # get connection & cursor
         connection = self.session.bind.raw_connection()
         cursor = connection.cursor()
+
+        # default unloaded directory is subdirectory of archive
+        if archive_directory_path and (not unloaded_directory_path):
+            unloaded_directory_path = os.path.join(archive_directory_path,"unloaded")
 
         # find all datafile ids matching the given election and jurisdiction
         df_list, err_str = db.data_file_list(
@@ -348,6 +357,12 @@ class DataLoader:
 
         # remove data from all those datafiles
         for idx in df_list:
+            if archive_directory_path:
+                # get corresponding file path
+                results_file = db.results_file_name(cursor, idx)
+                # move the corresponding results file to the unloaded directory
+                ui.archive(results_file, archive_directory_path, unloaded_directory_path)
+            # remove all data that came from this datafile, and remove _datafile record
             db.remove_vote_counts(connection, cursor, idx, active_confirm)
         return None
 

@@ -498,25 +498,6 @@ def add_err_df(err, err_df, munger_name, f_path):
     return err
 
 
-def archive_from_param_file(param_file: str, current_dir: str, archive_dir: str):
-    params, err = get_parameters(
-        required_keys=["results_file", "aux_data_dir"],
-        header="election_data_analysis",
-        param_file=os.path.join(current_dir, param_file),
-    )
-    # TODO error handling
-    # if the ini file specifies an aux_data_directory
-    if (
-        "aux_data_dir" in params.keys()
-        and params["aux_data_dir"]
-        and params["aux_data_dir"] != ""
-    ):
-        archive(params["aux_data_dir"], current_dir, archive_dir)
-    archive(params["results_file"], current_dir, archive_dir)
-    archive(param_file, current_dir, archive_dir)
-    return
-
-
 def archive(relative_path: str, current_dir: str, archive_dir: str):
     """Move <relative_path> from <current_dir> to <archive_dir>. If <archive_dir> already has a file with that name,
     add a number prefix to the name of the created file."""
@@ -914,7 +895,11 @@ def reload_juris_election(
     test_dir: str,
     from_cron: bool = None,
 ) -> bool:
-    """Assumes run_time.ini in directory, and results to be loaded are in the results_dir named in run_time.ini"""
+    """Assumes run_time.ini in directory, and
+    results to be loaded are in the results_dir named in run_time.ini.
+    Loads the results files for <juris_name> and <election_name> to a temporary
+    database and runs tests from <test_dir>. If tests pass, loads results to database
+    specified in run_time.ini. """
     # initialize dataloader
     dl = e.DataLoader()
     db_params = get_parameters(
@@ -929,6 +914,7 @@ def reload_juris_election(
         "postgresql",
     )[0]
 
+    # make routine interactive if it is not run by a cron job
     if not from_cron:
         # Ask user to confirm/correct essential info
         confirm_essential_info(
@@ -950,63 +936,40 @@ def reload_juris_election(
     db_params["dbname"] = temp_db
     db.create_or_reset_db(dbname=temp_db)
 
-    # load all data into temp db
+    # load all data into temp db but do not remove them from the results_dir
     dl.change_db(temp_db)
     dl.load_all(move_files=False)
 
-    # run test files on temp db
+    # run test files on temp db (results == 0 means all tests passed)
     _, results = run_tests(
         test_dir,
         dl.d["dbname"],
         election_jurisdiction_list=[(election_name, juris_name)],
     )
 
-    go_ahead = "y"
-    if not from_cron:
-        # Ask user to OK test results or abandon
-        go_ahead = input(
-            f"Did tests succeeded for election {election_name} in {juris_name} (y/n)?"
-        )
-    if go_ahead != "y" or results != 0:
+    # #  if tests did not pass
+    if results != 0:
         print("Something went wrong, new data not loaded")
         # cleanup
         db.remove_database(db_params)
         return False
+    # otherwise, load to live db.
 
-    # switch to live db and get info needed later
+    # # switch to live db and get info needed later
     dl.change_db(live_db)
     election_id = db.name_to_id(dl.session, "Election", election_name)
     juris_id = db.name_to_id(dl.session, "ReportingUnit", juris_name)
 
-    # Move results files (and any .ini files) for juris-election pair to 'unloaded' directory
-    # TODO here are no .ini files in the archive_directory,
-    #  so [f for f in os.listdir(archive_directory) if f[-4:] == ".ini"]
-    #  below is probably empty. So need another way to identify and move results files.
-    archive_directory = dl.d["archive_dir"]
-    if dl.d["unloaded_dir"]:
-        unloaded_directory = dl.d["unloaded_dir"]
-    else:
-        unloaded_directory = os.path.join(archive_directory, "unloaded")
-    for f in [f for f in os.listdir(archive_directory) if f[-4:] == ".ini"]:
-        param_file = os.path.join(archive_directory, f)
-        params, err = get_parameters(
-            required_keys=["election", "top_reporting_unit", "results_file"],
-            header="election_data_analysis",
-            param_file=param_file,
-        )
-        # if the *.ini file is for the given election and jurisdiction
-        if (
-            (not err)
-            and params["election"] == election_name
-            and params["top_reporting_unit"] == juris_name
-        ):
-            # move the *.ini file and its results file (and any aux_data_directory) to the unloaded directory
-            archive_from_param_file(param_file, archive_directory, unloaded_directory)
+    # # Remove existing data for juris-election pair from live db (ask user for confirmation unless it's a cron job)
+    dl.remove_data(
+        election_id,
+        juris_id,
+        active_confirm=(not from_cron),
+        archive_directory_path=os.path.join(dl.d["archive_dir"], live_db),
+        unloaded_directory_path=os.path.join(dl.d["unloaded_dir"], live_db),
+    )
 
-    # Remove existing data for juris-election pair from live db
-    dl.remove_data(election_id, juris_id, (not from_cron))
-
-    # Load new data into live db (and move successful to archive)
+    # # Load new data into live db (and move successful to archive)
     dl.load_all()
 
     # run tests on live db

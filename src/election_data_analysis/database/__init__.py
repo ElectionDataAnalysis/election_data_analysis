@@ -1256,7 +1256,7 @@ def list_to_id(session, element, names) -> int:
     return None
 
 
-def data_file_download(cursor, election_id: int, reporting_unit_id: int) -> int:
+def data_file_download(cursor, election_id: int, reporting_unit_id: int) -> Optional[int]:
     q = sql.SQL(
         """
         SELECT  MAX(download_date)::text as download_date
@@ -1391,3 +1391,20 @@ def display_jurisdictions(session, cols):
     result_df.columns = cols
     cursor.close()
     return result_df
+
+
+def results_file_name(cursor, _datafile_id: int) -> Optional[str]:
+    q = sql.SQL(
+        """
+        SELECT  file_name
+        FROM    _datafile
+        WHERE   "Id" = %s
+    """
+    )
+    try:
+        cursor.execute(q, [_datafile_id])
+        return cursor.fetchall()[0][0]
+    except Exception as exc:
+        return None
+
+
