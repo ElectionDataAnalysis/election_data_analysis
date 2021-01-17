@@ -193,7 +193,7 @@ class DataLoader:
         }
 
         # list .ini files and pull their jurisdiction_paths
-        good_ini_paths, juris_by_ini, election_by_ini, new_err = ui.all_ini_file_paths(
+        good_ini_paths, juris_by_ini, election_by_ini, new_err = all_ini_file_paths(
             self, election_jurisdiction_list=election_jurisdiction_list
         )
         if not good_ini_paths:
