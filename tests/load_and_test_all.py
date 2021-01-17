@@ -10,6 +10,7 @@ from election_data_analysis import database as db
 from election_data_analysis import user_interface as ui
 from distutils.dir_util import copy_tree
 
+
 def io(argv) -> Optional[list]:
     election = None
     jurisdiction = None
@@ -76,9 +77,10 @@ def close_and_erase(dl: eda.DataLoader) -> Optional[dict]:
 
 
 def get_testing_data(
-        url: Optional[str] = None,
-        results_dir: Optional[str] = "TestingData",
-        path_to_repo: Optional[str] = None):
+    url: Optional[str] = None,
+    results_dir: Optional[str] = "TestingData",
+    path_to_repo: Optional[str] = None,
+):
     # if there is no target directory
     if not os.path.isdir(results_dir):
         # create a shallow copy of the git directory in current directory
