@@ -27,7 +27,7 @@ Ensure that the munger files are appropriate for your results file(s). If the mu
 [ignore]
 Party=Total Votes Cast
 ```
-and similarly, if necessary, for any Contest or Selection. If there is more than one "Party" to be ignored, use a comma-separated list: `Candidate=Total Votes Cast,Registered Voters`
+and similarly, if necessary, for any Contest or Selection. If there is more than one Party (e.g.) to be ignored, use a comma-separated list: `Candidate=Total Votes Cast,Registered Voters`
  
  There are three main required parameters: `file_type`, `count_locations` and `munge_strings`. Depending on the values of these, there are other required and optional fields. 
  `file_type`: controls which pandas function reads the file contents. Related optional and required parameters must be given under the `[file_type]` header.
@@ -41,7 +41,7 @@ and similarly, if necessary, for any Contest or Selection. If there is more than
     * (optional) if there are tags in the vote-count hierarchy that do not themselves contain data we want, list them in the `nesting_tags` parameter, e.g., `nesting_tags=contests,choices,jurisdictions,voteTypes`
   * 'flat_text' Any tab-, comma-, or other-separated table in a plain tabular text file.
     * (required) a field delimiter `flat_text_delimiter` to be specified (usually `flat_text_delimiter=,` for csv or `flat_text_delimiter=tab` for .txt)
-  * [[ will be obsolete: `concatenated-blocks` Clarity format derived from xml]]
+  * 'fixed_width' A text file with data in well-defined locations within each line
   
   `count_locations`: controls how the system looks for counts. Related optional and required parameters must be given under the `[count_locations]` header.
   * 'by_field_names' (NB: as of 12/2020, for this case system can handle only files with only one field-name row for the count fields. If there are multiple header rows for the count columns, use the 'by_column_number' option.)
@@ -49,17 +49,18 @@ and similarly, if necessary, for any Contest or Selection. If there is more than
     * (required for 'excel' and 'flat_text' file_types) specify location of field names for count columns. with integer `count_field_name_row` (NB: top row not skipped is 0, next row is 1, etc.)
   * 'by_column_number'
     * (required) list `count_column_numbers` of column numbers which may contain counts. There is no problem if this list contains spurious columns.
+  * 'by_character_range'
+    * (required) list `count_character_ranges` ranges of characters where counts are found (e.g., '35-40,49-52')
     
-  `munge_strings`: controls how the system looks for the character strings used to munge the non-count information (Candidate, Party, etc.). There may be multiple, so the value is a list. Related optional and required parameters must be given under the `[munge_strings]` header.
+  `munge_strings`: controls how the system looks for the character strings used to munge the non-count information (Candidate, Party, etc.). There may be multiple, so the value is a list. There are related optional and required parameters depending on the values in the `munge_strings` list.
   * 'in_field_values'
     * (required) either:
-      * if all_rows=data (i.e., no field names) list `string_field_column_numbers` of integers designating columns (leftmost column is 0, next is 1, etc.)
+      * if field names are not in the file, need `all_rows=data`. in this case fields will be identified either by column (if flat_text) or by character range (if fixed_width)
       * if some of the field values are foreign keys, must give lookup information. For each foreign key, need a separate section with corresponding header (field name plus " lookup", e.g. `[county_id lookup]`. This section needs:
         * `source_file` the path to the source file, relative to the results directory given in `run_time.ini`
         * all the usual basic format parameters except `count_locations` -- but not the usual formulas
         * `lookup_id` is the single field name holding the key to the lookup table. (If there are no headers in the lookup source file, use, e.g., `column_0`)
-        * for each element whose formula looks something up from this table, a formula for the foreign key replacement.
-       
+        * for each element whose formula looks something up from this table, a formula for the foreign key replacement.      
     * (required for 'excel' and 'flat_text' file_types where not all rows are data) specify location of field names for string columns. Need integer `string_field_name_row` (NB: top row not skipped is 0, next row is 1, etc.)
   * 'in_count_headers' this is used, e.g., when each candidate has a separate column in a tabular file. In this case there may be a single header row with relevant info, or there may be several rows (e.g., Contest in one row, Candidate in another row)
     * (required) list `count_header_row_numbers` of integers for rows containing necessary character strings. (NB: top row not skipped is 0, next row is 1, etc.)
@@ -73,7 +74,7 @@ and similarly, if necessary, for any Contest or Selection. If there is more than
    * (optional) `thousands_separator`. In the US the separator is almost always ',' if it is used. Watch out for Excel files which may show a comma when you look at them in Excel -- there may not be a comma in the underlying data.
    * (optional) `encoding` (If not specified or recognized, a default encoding will be used. Recognized encodings are limited [python's list of recognized encodings and aliases](https://docs.python.org/3/library/codecs.html#standard-encodings).)
 
-   Available for flat_text and excel file types:
+   Available for flat_text, fixed_width and excel file types:
    * (optional) `rows_to_skip` An integer giving the number of rows to skip at the top to get to the table of counts. This parameter will affect all integers designating rows -- e.g., '<header_0>' is the first row not skipped. This affects the numbering of rows for munge strings that are constant over the sheet as well. If `rows_to_skip = 2`, then '<row_0>' will denote the third row of the actual Excel sheet -- the highest unskipped row. The system recognizes the leftmost non-blank cell as the content to be read.
    * (optional) `all_rows` If the file has no column headers but only data rows with counts, set this parameter to 'data'
  
@@ -165,6 +166,47 @@ WARD,DIVISION,VOTE TYPE,CATEGORY,SELECTION,PARTY,VOTE COUNT
 ```
 The formula `Ward <WARD>;Division <DIVISION>` would yield 'Ward 01;Division 01'.
 
+### fixed width `[in_field_values]` 
+ Consider this snippet from a fixed-width Rhode Island results file:
+```
+03100012833000004000001000001000002000000000000000000000000000000000000000000000000000000000000000000DEM0030112Senator in General Assembly District 6                  Tiara T. Mack                         Providence 2833               District 6               01 
+03100012836000004000001000001000002000000000000000000000000000000000000000000000000000000000000000000DEM0030112Senator in General Assembly District 6                  Tiara T. Mack                         Providence 2836               District 6               01 
+```
+The Rhode Island Board of Elections provides a data description:
+```
+Record	Field	Definition	Notes
+1-4	Contest Number	4 Position Numeric
+5-7	Candidate Number	3 Position Numeric
+8-11	Precinct Code	4 Position Numeric
+12-17	Total Votes	6 Position Numeric
+18-23	Number of Votes Group 1	6 Position Numeric	Election Day
+24-29	Number of Votes Group 2	6 Position Numeric	Mail Ballots
+30-35	Number of Votes Group 3	6 Position Numeric
+36-41	Number of Votes Group 4	6 Position Numeric
+42-47	Number of Votes Group 5	6 Position Numeric
+48-53	Number of Votes Group 6	6 Position Numeric
+54-59	Number of Votes Group 7	6 Position Numeric
+60-65	Number of Votes Group 8	6 Position Numeric
+66-71	Number of Votes Group 9	6 Position Numeric
+72-77	Number of Votes Group 10	6 Position Numeric
+78-83	Number of Votes Group 11	6 Position Numeric
+84-89	Number of Votes Group 12	6 Position Numeric
+90-95	Number of Votes Group 13	6 Position Numeric
+96-101	Number of Votes Group 14	6 Position Numeric
+102-104	Party Code	3 Position Alphanumeric
+105-107	District Type ID	3 Position Alphanumeric
+108-111	District Code	4 Position Alphanumeric
+112-167	Contest Title	56 Position Alphanumeric
+168-205	Candidate Name	38 Position Alphanumeric
+206-235	Precinct Name	30 Position Alphanumeric
+236-260	District Name	25 Position Alphanumeric
+261-262	Votes Allowed	2 Position Numeric
+263	Referendum Flag	1 Position
+```
+The formula `<range_168_205>` would yield 'Tiara T. Mack                         '. (Note that the system will strip trailing whitespace, eventually yielding 'Tiara T. Mack')
+
+[[How to handle CountItemType in this case?]]
+
 ### xml `[in_field_values]`
 Consider this snippet from a Georgia voting results file:
  ```
@@ -201,7 +243,7 @@ ALAMANCE	11/06/2018	064	1228	S	NC COURT OF APPEALS JUDGE SEAT 3	Michael Monaco, 
 ALAMANCE	11/06/2018	03N	1228	S	NC COURT OF APPEALS JUDGE SEAT 3	Michael Monaco, Sr.	LIB	1	59	38	1	0	98	Y
 ALAMANCE	11/06/2018	03S	1228	S	NC COURT OF APPEALS JUDGE SEAT 3	Michael Monaco, Sr.	LIB	1	106	108	0	3	217	Y
 ```
-Here the CountItemType value ('Election Day','One Stop' a.k.a. early voting, 'Absentee by Mail','Provisional' must be read from the column headers, i.e., the information in row 0 of the file. For the first data row, the formula <header_0> would yield CountItemType 'Election Day' for the VoteCount of 59, 'One Stop' for the vote count of 65, etc.
+Here the CountItemType value ('Election Day','One Stop' a.k.a. early voting, 'Absentee by Mail','Provisional' must be read from the column headers, i.e., the information in row 0 of the file. For the first data row, the formula `<header_0>` would yield CountItemType 'Election Day' for the VoteCount of 59, 'One Stop' for the vote count of 65, etc.
 
 ### excel `[constant_over_sheet]`
 To be read automatically, information that is constant over a sheet must be read either from the sheet name (using `<sheet_name>`) or from the left-most, non-blank entry in a row of the sheet using `<row_j>`, where `j` is the row number. Row numbers start with `0` after skipping the number of rows given in `rows_to_skip`.
