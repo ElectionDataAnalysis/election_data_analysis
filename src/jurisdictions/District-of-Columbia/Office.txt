@@ -8,8 +8,8 @@ DC Council Ward 6	District of Columbia;Ward 6
 DC Council Ward 7	District of Columbia;Ward 7
 DC Council Ward 8	District of Columbia;Ward 8
 DC Council At Large	District of Columbia
-US House DC District 1	District of Columbia
-US House Delegate DC	District of Columbia
+US House DC District 1	US House DC District 1
+US House Delegate DC	US House DC District 1
 US President (DC)	District of Columbia
 US Senate DC	District of Columbia
 DC Mayor	District of Columbia
