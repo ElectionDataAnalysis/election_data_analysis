@@ -1,12 +1,12 @@
 Name	NumberElected	Office	PrimaryParty
-DC Council District 1	1	DC Council District 1	
-DC Council District 2	1	DC Council District 2	
-DC Council District 3	1	DC Council District 3	
-DC Council District 4	1	DC Council District 4	
-DC Council District 5	1	DC Council District 5	
-DC Council District 6	1	DC Council District 6	
-DC Council District 7	1	DC Council District 7	
-DC Council District 8	1	DC Council District 8	
+DC Council Ward 1	1	DC Council Ward 1	
+DC Council Ward 2	1	DC Council Ward 2	
+DC Council Ward 3	1	DC Council Ward 3	
+DC Council Ward 4	1	DC Council Ward 4	
+DC Council Ward 5	1	DC Council Ward 5	
+DC Council Ward 6	1	DC Council Ward 6	
+DC Council Ward 7	1	DC Council Ward 7	
+DC Council Ward 8	1	DC Council Ward 8	
 DC Council At Large	4	DC Council At Large
 US House DC District 1	1	US House DC District 1
 US Senate DC	1	US Senate DC

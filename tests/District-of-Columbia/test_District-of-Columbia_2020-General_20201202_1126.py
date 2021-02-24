@@ -80,7 +80,7 @@ def test_state_house_totals(dbname):
         e.contest_total(
             election,
             jurisdiction,
-            f"{abbr} Council District {shd}",
+            f"{abbr} Council Ward {shd}",
             sub_unit_type=county_or_other,
             dbname=dbname,
         )

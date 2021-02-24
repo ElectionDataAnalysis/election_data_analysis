@@ -1,12 +1,12 @@
 cdf_element	cdf_internal_name	raw_identifier_value
-CandidateContest	DC Council District 1	WARD ONE MEMBER OF THE COUNCIL
-CandidateContest	DC Council District 2	WARD TWO MEMBER OF THE COUNCIL
-CandidateContest	DC Council District 3	WARD THREE MEMBER OF THE COUNCIL
-CandidateContest	DC Council District 4	WARD FOUR MEMBER OF THE COUNCIL
-CandidateContest	DC Council District 5	WARD FIVE MEMBER OF THE COUNCIL
-CandidateContest	DC Council District 6	WARD SIX MEMBER OF THE COUNCIL
-CandidateContest	DC Council District 7	WARD SEVEN MEMBER OF THE COUNCIL
-CandidateContest	DC Council District 8	WARD EIGHT MEMBER OF THE COUNCIL
+CandidateContest	DC Council Ward 1	WARD ONE MEMBER OF THE COUNCIL
+CandidateContest	DC Council Ward 2	WARD TWO MEMBER OF THE COUNCIL
+CandidateContest	DC Council Ward 3	WARD THREE MEMBER OF THE COUNCIL
+CandidateContest	DC Council Ward 4	WARD FOUR MEMBER OF THE COUNCIL
+CandidateContest	DC Council Ward 5	WARD FIVE MEMBER OF THE COUNCIL
+CandidateContest	DC Council Ward 6	WARD SIX MEMBER OF THE COUNCIL
+CandidateContest	DC Council Ward 7	WARD SEVEN MEMBER OF THE COUNCIL
+CandidateContest	DC Council Ward 8	WARD EIGHT MEMBER OF THE COUNCIL
 CandidateContest	DC Council At Large	AT-LARGE MEMBER OF THE COUNCIL
 CandidateContest	US House Delegate DC	DELEGATE TO THE U.S. HOUSE OF REPRESENTATIVES
 CandidateContest	US House DC District 1	UNITED STATES REPRESENTATIVE
