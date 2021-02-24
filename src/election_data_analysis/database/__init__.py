@@ -34,6 +34,7 @@ California
 Colorado
 Connecticut
 Delaware
+District of Columbia
 Florida
 Georgia
 Hawaii
@@ -86,10 +87,13 @@ db_pars = ["host", "port", "dbname", "user", "password"]
 
 contest_types_model = [
     "state",
+    "district",
+    "territory",
     "congressional",
     "judicial",
     "state-house",
     "state-senate",
+    "city",
 ]
 
 

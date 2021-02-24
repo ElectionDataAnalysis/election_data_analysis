@@ -312,6 +312,10 @@ contest_type_mappings = {
     "state": "Statewide",
     "state-house": "State House",
     "state-senate": "State Senate",
+    "district": "District-Wide",
+    "territory": "Territory-Wide",
+    "city": "Citywide",
+    "judicial": "Judicial",
 }
 
 
