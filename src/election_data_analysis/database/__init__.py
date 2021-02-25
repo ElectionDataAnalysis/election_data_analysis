@@ -94,6 +94,7 @@ contest_types_model = [
     "state-house",
     "state-senate",
     "city",
+    "district",
 ]
 
 
