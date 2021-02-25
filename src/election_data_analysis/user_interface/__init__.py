@@ -316,7 +316,7 @@ contest_type_mappings = {
     "territory": "Territory-Wide",
     "city": "Citywide",
     "judicial": "Judicial",
-    "district": "District-Wide",
+    "ward": "Ward",
 }
 
 

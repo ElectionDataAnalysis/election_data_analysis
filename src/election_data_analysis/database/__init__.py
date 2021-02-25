@@ -95,6 +95,7 @@ contest_types_model = [
     "state-senate",
     "city",
     "district",
+    "ward",
 ]
 
 
@@ -1208,12 +1209,21 @@ def read_vote_count(
     session,
     election_id,
     reporting_unit_id,
-    fields,
-    aliases,
+    naive_fields: List[str],
+    naive_aliases: List[str],
 ):
     """The VoteCount table is the only place that maps contests to a specific
     election. But this table is the largest one, so we don't want to use pandas methods
     to read into a DF and then filter"""
+
+    ## actual unit type is in one of two places
+    if "unit_type" in naive_fields:
+        fields = [x for x in naive_fields if x != "unit_type"] + ["standard_unit_type", "other_unit_type"]
+        aliases = [x for x in naive_aliases if x != "type"] + ["standard_type", "other_type"]
+    else:
+        fields = naive_fields
+        aliases = naive_aliases
+
     q = sql.SQL(
         """
         SELECT  DISTINCT {fields}
@@ -1230,8 +1240,8 @@ def read_vote_count(
                 JOIN "CandidateContest" cc ON con."Id" = cc."Id"
                 JOIN (SELECT "Id", "Name" as "OfficeName", "ElectionDistrict_Id" FROM "Office") o on cc."Office_Id" = o."Id"
                 -- this reporting unit info refers to the districts (state house, state senate, etc)
-                JOIN (SELECT "Id", "Name" AS "ReportingUnitName", "ReportingUnitType_Id" FROM "ReportingUnit") ru on o."ElectionDistrict_Id" = ru."Id"
-                JOIN (SELECT "Id", "Txt" AS unit_type FROM "ReportingUnitType") rut on ru."ReportingUnitType_Id" = rut."Id"
+                JOIN (SELECT "Id", "Name" AS "ReportingUnitName", "ReportingUnitType_Id", "OtherReportingUnitType" as other_unit_type FROM "ReportingUnit") ru on o."ElectionDistrict_Id" = ru."Id"
+                JOIN (SELECT "Id", "Txt" AS standard_unit_type FROM "ReportingUnitType") rut on ru."ReportingUnitType_Id" = rut."Id"
                 -- this reporting unit info refers to the geopolitical divisions (county, state, etc)
                 JOIN (SELECT "Id" as "GP_Id", "Name" AS "GPReportingUnitName", "ReportingUnitType_Id" AS "GPReportingUnitType_Id" FROM "ReportingUnit") gpru on vc."ReportingUnit_Id" = gpru."GP_Id"
                 JOIN (SELECT "Id", "Txt" AS "GPType" FROM "ReportingUnitType") gprut on gpru."GPReportingUnitType_Id" = gprut."Id"
@@ -1249,6 +1259,9 @@ def read_vote_count(
     cursor.execute(q, [election_id, reporting_unit_id])
     results = cursor.fetchall()
     results_df = pd.DataFrame(results, columns=aliases)
+    if "unit_type" in naive_fields:
+        # combine all unit types into single column
+        results_df = combine_type_columns(results_df, "standard_type", "other_type", "type")
     return results_df
 
 
@@ -1396,3 +1409,19 @@ def display_jurisdictions(session, cols):
     result_df.columns = cols
     cursor.close()
     return result_df
+
+
+def combine_type_columns(
+        df: pd.DataFrame,
+        standard_type_col: str,
+        other_type_col: str,
+        combined_type_col: str,
+) -> pd.DataFrame:
+    working = df.copy()
+    working[combined_type_col] = working[standard_type_col]
+
+    # where standard type is other, replace with values from other type column
+    mask = working[standard_type_col] == "other"
+    working[combined_type_col][mask] = working[other_type_col][mask]
+    working.drop([standard_type_col, other_type_col], axis=1, inplace=True)
+    return working
