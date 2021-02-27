@@ -1,3 +1,6 @@
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4078/badge)](https://bestpractices.coreinfrastructure.org/projects/4078)
+
+
 # Overview
 This repository hopes to provide reliable tools for consolidation and analysis of raw election results from the most reliable sources -- the election agencies themselves. 
  * Consolidation: take as input election results files from a wide variety of sources and load the data into a relational database
@@ -8,7 +11,10 @@ This repository hopes to provide reliable tools for consolidation and analysis o
 # Target Audience
 This system is intended to be of use to candidates and campaigns, election officials, students of politics and elections, and anyone else who is interested in assembling and understanding election results.
 
-# How to Help
+# How to Contribute Code
+Please contribute code that works in python 3.7, with the package versions specified in [requirements.txt](requirements.txt). We follow the [black](https://pypi.org/project/black/) format.
+
+# How to Help in Other Ways
 If you have skills to contribute to building the system, we can definitely use your help:
  * Creating visualizations
  * Importing and exporting data via xml feeds
