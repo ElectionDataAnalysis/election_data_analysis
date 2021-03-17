@@ -25,7 +25,7 @@ from election_data_analysis.database import create_cdf_db as db_cdf
 import os
 from sqlalchemy import MetaData, Table, Column, Integer, Float
 # NB: syntax-checker doesn't see it, but these ^^ are used.
-from typing import Optional, List, Dict, Any, Iterable, Set
+from typing import Optional, List, Dict, Any, Iterable, Set, Tuple
 from election_data_analysis import user_interface as ui
 
 states = """Alabama
@@ -1668,3 +1668,85 @@ def get_vote_count_types(
     vct_set = get_vote_count_types_cursor(cursor, election, jurisdiction)
     connection.close()
     return vct_set
+
+
+def election_jurisdiction_pairs(session: Session) -> List[Tuple[str, str]]:
+    """Returns list of alll election-jurisdiction pairs in the db"""
+    con = session.bind.raw_connection()
+    cur = con.cursor()
+    ej_pairs = election_jurisdiction_pairs_by_cursor(cur)
+    con.close()
+    return ej_pairs
+
+
+def election_jurisdiction_pairs_by_cursor(cursor: psycopg2.extensions.cursor) -> List[Tuple[str, str]]:
+    q = sql.SQL("""
+    select distinct e."Name", ru."Name"
+    from "VoteCount" vc
+    left join _datafile d on vc."_datafile_Id" = d."Id"
+    left join "Election" e on d."Election_Id" = e."Id"
+    left join "ReportingUnit" ru on d."ReportingUnit_Id" = ru."Id"
+    """)
+    cursor.execute(q)
+    ej_list = cursor.fetchall()
+    return ej_list
+
+
+def district_types_by_cursor(
+        cursor: psycopg2.extensions.cursor,
+        election: str,
+        jurisdiction: str,
+) -> Set[str]:
+    """Returns list of all candidate contest district types with results in the db for the
+    given election and jurisdiction"""
+    q_standard = sql.SQL("""
+    select distinct rut."Txt"
+    from "VoteCount" vc
+    left join _datafile d on vc."_datafile_Id" = d."Id"
+    left join "Election" e on d."Election_Id" = e."Id"
+    left join "ReportingUnit" juris on d."ReportingUnit_Id" = juris."Id"
+    left join "CandidateContest" con on vc."Contest_Id" = con."Id"
+    left join "Office" off on con."Office_Id" = off."Id"
+    left join "ReportingUnit" ed on off."ElectionDistrict_Id" = ed."Id"
+    left join "ReportingUnitType" rut on ed."ReportingUnitType_Id" = rut."Id"
+    where
+    rut."Txt" != 'other' 
+    and juris."Name" = {jurisdiction}
+    and e."Name" = {election}
+    """).format(jurisdiction=sql.Literal(jurisdiction),
+                election=sql.Literal(election))
+    cursor.execute(q_standard)
+    standard_types = cursor.fetchall()
+
+    q_other = sql.SQL("""
+    select distinct ed."OtherReportingUnitType"
+    from "VoteCount" vc
+    left join _datafile d on vc."_datafile_Id" = d."Id"
+    left join "Election" e on d."Election_Id" = e."Id"
+    left join "ReportingUnit" juris on d."ReportingUnit_Id" = juris."Id"
+    left join "CandidateContest" con on vc."Contest_Id" = con."Id"
+    left join "Office" off on con."Office_Id" = off."Id"
+    left join "ReportingUnit" ed on off."ElectionDistrict_Id" = ed."Id"
+    left join "ReportingUnitType" rut on ed."ReportingUnitType_Id" = rut."Id"
+    where
+    rut."Txt" != 'other' 
+    and juris."Name" = {jurisdiction}
+    and e."Name" = {election}
+    """).format(jurisdiction=sql.Literal(jurisdiction),
+                election=sql.Literal(election))
+    cursor.execute(q_other)
+    other_types = cursor.fetchall()
+    types = {x[0] for x in standard_types}
+    types.update({x[0] for x in other_types})
+    return types
+
+
+def district_types(
+        session: Session,
+        election: str,
+        jurisdiction: str,
+)-> Set[str]:
+    con = session.bind.raw_connection()
+    cur = con.cursor()
+    dt_iter = district_types_by_cursor(cur, election, jurisdiction)
+    return dt_iter

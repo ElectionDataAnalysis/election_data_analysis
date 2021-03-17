@@ -1728,6 +1728,23 @@ class Analyzer:
         vc_dict = vc_df.groupby(name_field).sum("Count").to_dict()["Count"]
         return vc_dict
 
+    def missing_candidate_contest_district_types(
+            self,
+            district_type_list: List[str] = ["state", "state-house", "state-senate", "congressional"]
+    ) -> Dict[str, Any]:
+        """Returns dictionary of state-election pairs that have results in the db but
+        are missing any of the given candidate contest types, by contest type """
+        missing = {dt: list() for dt in district_type_list}
+
+        election_jurisdiction_pairs = db.election_jurisdiction_pairs(self.session)
+        for (e, j) in election_jurisdiction_pairs:
+            present_list = db.district_types(self.session, e, j)
+            missing_list = [dt for dt in district_type_list if dt not in present_list]
+            for dt in missing_list:
+                missing[dt].append((e, j))
+
+
+
 def aggregate_results(
     election,
     jurisdiction,
