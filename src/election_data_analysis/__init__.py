@@ -1742,6 +1742,7 @@ class Analyzer:
             missing_list = [dt for dt in district_type_list if dt not in present_list]
             for dt in missing_list:
                 missing[dt].append((e, j))
+        return missing
 
 
 
