@@ -554,7 +554,7 @@ This package also provides functionality to export the data according to the [NI
 ```
 from election_data_analysis import Analyzer
 analyzer = Analyzer()
-election_report = analyzer.export_nist("2020 General", "Georgia")
+election_report = analyzer.export_nist_v2("2020 General", "Georgia")
 ```
 
 ### Difference-in-Difference calculations
