@@ -22,3 +22,4 @@ src/ini_files_for_results/Delaware/de_20g_nist_export.ini
 /tests/TestingData/
 /tests/Staging/
 
+/tests/Temp/
