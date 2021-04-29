@@ -23,3 +23,8 @@ ReportingUnit	US-Virgin-Islands;US House VI District 1	US-Virgin-Islands;US Hous
 ReportingUnit	US-Virgin-Islands	US-Virgin-Islands
 ReportingUnit	US-Virgin-Islands;St. Thomas / St. John	STT
 ReportingUnit	US-Virgin-Islands;St. Croix	STX
+CountItemType	election-day	ElectionDay
+CountItemType	early-voting	Early voting
+CountItemType	absentee	Absentee
+CountItemType	provisional	Provisional
+Candidate	Shekema M. George	Shekema M. George
