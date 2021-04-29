@@ -1,0 +1,9 @@
+Name	ElectionDistrict
+US House VI District 1	US-Virgin-Islands;US House VI District 1
+US President (VI)	US-Virgin-Islands
+VI Governor	US-Virgin-Islands
+US Senate VI	US-Virgin-Islands
+VI Attorney General	US-Virgin-Islands
+VI Lieutenant Governor	US-Virgin-Islands
+VI Treasurer	US-Virgin-Islands
+VI Secretary of State	US-Virgin-Islands

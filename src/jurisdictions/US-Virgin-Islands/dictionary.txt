@@ -1,0 +1,25 @@
+cdf_element	cdf_internal_name	raw_identifier_value
+CandidateContest	US House VI District 1	US House VI District 1
+CandidateContest	US House VI District 1	DELEGATE TO THE HOUSE OF REPRESENTATIVES
+CandidateContest	US President (VI)	US President (VI)
+CandidateContest	VI Governor	VI Governor
+CandidateContest	US Senate VI	US Senate VI
+CandidateContest	VI Attorney General	VI Attorney General
+CandidateContest	VI Lieutenant Governor	VI Lieutenant Governor
+CandidateContest	VI Treasurer	VI Treasurer
+CandidateContest	VI Secretary of State	VI Secretary of State
+Election	2020 General	2020 General
+Election	2020 Primary	2020 Primary
+Election	2018 General	2018 General
+Election	2016 General	2016 General
+Party	Democratic Party	Democratic Party
+Party	Republican Party	Republican Party
+Party	Democratic Party	DEM
+Party	Republican Party	REP
+Party	Independent Citizens Movement	ICM
+Party	Green Party	Green Party
+Party	Libertarian Party	Libertarian Party
+ReportingUnit	US-Virgin-Islands;US House VI District 1	US-Virgin-Islands;US House VI District 1
+ReportingUnit	US-Virgin-Islands	US-Virgin-Islands
+ReportingUnit	US-Virgin-Islands;St. Thomas / St. John	STT
+ReportingUnit	US-Virgin-Islands;St. Croix	STX

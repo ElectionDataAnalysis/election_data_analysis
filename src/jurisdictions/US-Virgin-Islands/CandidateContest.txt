@@ -1,0 +1,9 @@
+Name	NumberElected	Office	PrimaryParty
+US House VI District 1	1	US House VI District 1	
+US President (VI)	1	US President (VI)	
+VI Governor	1	VI Governor	
+US Senate VI	1	US Senate VI	
+VI Attorney General	1	VI Attorney General	
+VI Lieutenant Governor	1	VI Lieutenant Governor	
+VI Treasurer	1	VI Treasurer	
+VI Secretary of State	1	VI Secretary of State	
