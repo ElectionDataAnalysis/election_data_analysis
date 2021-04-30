@@ -1,5 +1,5 @@
 Name	ReportingUnitType
-US-Virgin-Islands;US House VI District 1	congressional
-US-Virgin-Islands	territory
-US-Virgin-Islands;St. Thomas / St. John	district
-US-Virgin-Islands;St. Croix	district
+US Virgin Islands;US House VI District 1	congressional
+US Virgin Islands	territory
+US Virgin Islands;St. Thomas / St. John	district
+US Virgin Islands;St. Croix	district

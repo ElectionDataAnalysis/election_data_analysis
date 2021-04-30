@@ -19,12 +19,23 @@ Party	Republican Party	REP
 Party	Independent Citizens Movement	ICM
 Party	Green Party	Green Party
 Party	Libertarian Party	Libertarian Party
-ReportingUnit	US-Virgin-Islands;US House VI District 1	US-Virgin-Islands;US House VI District 1
-ReportingUnit	US-Virgin-Islands	US-Virgin-Islands
-ReportingUnit	US-Virgin-Islands;St. Thomas / St. John	STT
-ReportingUnit	US-Virgin-Islands;St. Croix	STX
+Party	Nonpartisan	None
+ReportingUnit	US Virgin Islands;US House VI District 1	US Virgin Islands;US House VI District 1
+ReportingUnit	US Virgin Islands	US Virgin Islands
+ReportingUnit	US Virgin Islands;St. Thomas / St. John	STT
+ReportingUnit	US Virgin Islands;St. Croix	STX
 CountItemType	election-day	ElectionDay
-CountItemType	early-voting	Early voting
+CountItemType	early-voting	Early Voting
 CountItemType	absentee	Absentee
 CountItemType	provisional	Provisional
 Candidate	Shekema M. George	Shekema M. George
+Candidate	Janelle K. Sarauw	Janelle K. Sarauw
+Candidate	Alma Francis Heyliger	Alma Francis Heyliger
+Candidate	Dwayne M. DeGraff	Dwayne M. DeGraff
+Candidate	Ray Fonseca	Ray Fonseca
+Candidate	Irvin Pudna Mason, Sr.	Irvin Pudna Mason, Sr.
+Candidate	Eugene Farrell	Eugene Farrell
+Candidate	Alecia M. Wells	Alecia M. Wells
+Candidate	Shena George-Esannason	Shena George-Esannason
+Candidate	Lydia A. Hendricks	Lydia A. Hendricks
+Candidate	Write-In	Write-In Totals
