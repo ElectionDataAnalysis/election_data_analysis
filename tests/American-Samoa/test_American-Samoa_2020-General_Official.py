@@ -15,13 +15,15 @@ total_pres_votes = -1  # total of all votes for President
 total_gov_votes = 11861  # total of all votes for Governor
 cd = 1  # congressional district
 total_cd_votes = 11749  # total votes in the chosen cd
-shd = "1"  # state house district
+shd = 1  # state house district
 total_shd_votes = -1
 ssd = 14  # state senate district
 total_ssd_votes = -1
 single_vote_type = "total"  # pick any one from your file
 con_votes_vote_type = 11749
 # pick any one from your file
+# Change this only if results are subdivided by something other than counties
+county_or_other = "polling-place"
 single_county = "American Samoa;Dist #5 - Sua No. 1"
 con_votes_county = 493  # total votes for congress of that county
 
@@ -51,6 +53,7 @@ def test_governor_totals(dbname):
             jurisdiction,
             f"{abbr} Governor",
             dbname=dbname,
+            sub_unit_type=county_or_other,
         )
         == total_gov_votes
     )
@@ -63,6 +66,7 @@ def test_congressional_totals(dbname):
             jurisdiction,
             f"US House {abbr} District {cd}",
             dbname=dbname,
+            sub_unit_type=county_or_other,
         )
         == total_cd_votes
     )
@@ -79,6 +83,7 @@ def test_state_senate_totals(dbname):
         )
         == total_ssd_votes
     )
+'''
 
 
 def test_state_house_totals(dbname):
@@ -88,10 +93,10 @@ def test_state_house_totals(dbname):
             jurisdiction,
             f"{abbr} House District {shd}",
             dbname=dbname,
+            sub_unit_type=county_or_other,
         )
         == total_shd_votes
     )
-'''
 
 
 def test_standard_vote_types(dbname):
@@ -111,6 +116,7 @@ def test_count_type_subtotal(dbname):
             f"US House {abbr} District {cd}",
             dbname=dbname,
             vote_type=single_vote_type,
+            sub_unit_type=county_or_other,
         )
         == con_votes_vote_type
     )
@@ -124,6 +130,7 @@ def test_county_subtotal(dbname):
             f"US House {abbr} District {cd}",
             dbname=dbname,
             county=single_county,
+            sub_unit_type=county_or_other,
         )
         == con_votes_county
     )
