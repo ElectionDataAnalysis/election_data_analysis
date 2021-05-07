@@ -16,7 +16,7 @@ total_gov_votes = 11861  # total of all votes for Governor
 cd = 1  # congressional district
 total_cd_votes = 11749  # total votes in the chosen cd
 shd = 1  # state house district
-total_shd_votes = -1
+total_shd_votes = 1151
 ssd = 14  # state senate district
 total_ssd_votes = -1
 single_vote_type = "total"  # pick any one from your file
@@ -24,7 +24,7 @@ con_votes_vote_type = 11749
 # pick any one from your file
 # Change this only if results are subdivided by something other than counties
 county_or_other = "polling-place"
-single_county = "American Samoa;Dist #5 - Sua No. 1"
+single_county = "American Samoa;Eastern District;Dist #5 - Sua No. 1"
 con_votes_county = 493  # total votes for congress of that county
 
 
@@ -93,7 +93,6 @@ def test_state_house_totals(dbname):
             jurisdiction,
             f"{abbr} House District {shd}",
             dbname=dbname,
-            sub_unit_type=county_or_other,
         )
         == total_shd_votes
     )

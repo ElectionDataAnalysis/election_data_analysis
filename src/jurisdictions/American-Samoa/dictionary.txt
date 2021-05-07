@@ -70,6 +70,23 @@ ReportingUnit	American Samoa;AS House District 14	American Samoa;AS House Distri
 ReportingUnit	American Samoa;AS House District 15	American Samoa;AS House District 15
 ReportingUnit	American Samoa;AS House District 16	American Samoa;AS House District 16
 ReportingUnit	American Samoa;AS House District 17	American Samoa;AS House District 17
+ReportingUnit	American Samoa;District of Manu'a;Dist #1 - Manu'a	Dist #1 - Manu'a
+ReportingUnit	American Samoa;District of Manu'a;Dist #2 - Manu'a	Dist #2 - Manu'a
+ReportingUnit	American Samoa;Eastern District;Dist #3 - Vaifanua	Dist #3 - Vaifanua
+ReportingUnit	American Samoa;Eastern District;Dist #4 - Saole	Dist #4 - Saole
+ReportingUnit	American Samoa;Eastern District;Dist #5 - Sua No. 1	Dist #5 - Sua No. 1
+ReportingUnit	American Samoa;Eastern District;Dist #6 - Sua No. 2	Dist #6 - Sua No. 2
+ReportingUnit	American Samoa;Eastern District;Dist #7 - Maoputasi No. 1	Dist #7 - Maoputasi No. 1
+ReportingUnit	American Samoa;Eastern District;Dist #8 - Maoputasi No. 2	Dist #8 - Maoputasi No. 2
+ReportingUnit	American Samoa;Eastern District;Dist #9 - Maoputasi No. 3	Dist #9 - Maoputasi No. 3
+ReportingUnit	American Samoa;Eastern District;Dist #10 - Maoputasi No. 4	Dist #10 - Maoputasi No. 4
+ReportingUnit	American Samoa;Eastern District;Dist #11 - Maoputasi No. 5	Dist #11 - Maoputasi No. 5
+ReportingUnit	American Samoa;Eastern District;Dist #12 - Ituau	Dist #12 - Ituau
+ReportingUnit	American Samoa;Western District;Dist #13 - Fofo	Dist #13 - Fofo
+ReportingUnit	American Samoa;Western District;Dist #14 - Alataua	Dist #14 - Alataua
+ReportingUnit	American Samoa;Western District;Dist #15 - Tualauta	Dist #15 - Tualauta
+ReportingUnit	American Samoa;Western District;Dist #16 - Tualatai	Dist #16 - Tualatai
+ReportingUnit	American Samoa;Western District;Dist #17 - Leasina	Dist #17 - Leasina
 ReportingUnit	American Samoa;AS House District 1	District No. 1 - Manu'a
 ReportingUnit	American Samoa;AS House District 2	District No. 2 - Manu'a
 ReportingUnit	American Samoa;AS House District 3	District NO. 3 - Vaifanua
@@ -90,23 +107,6 @@ ReportingUnit	American Samoa;AS House District 17	District No. 17 - Leasina
 ReportingUnit	American Samoa;US House AS District 1	American Samoa;US House AS District 1
 ReportingUnit	American Samoa	American Samoa
 ReportingUnit	American Samoa;Central Office - Swains Island	Central Office - Swains Island
-ReportingUnit	American Samoa;Dist #1 - Manu'a	Dist #1 - Manu'a
-ReportingUnit	American Samoa;Dist #2 - Manu'a	Dist #2 - Manu'a
-ReportingUnit	American Samoa;Dist #3 - Vaifanua	Dist #3 - Vaifanua
-ReportingUnit	American Samoa;Dist #4 - Saole	Dist #4 - Saole
-ReportingUnit	American Samoa;Dist #5 - Sua No. 1	Dist #5 - Sua No. 1
-ReportingUnit	American Samoa;Dist #6 - Sua No. 2	Dist #6 - Sua No. 2
-ReportingUnit	American Samoa;Dist #7 - Maoputasi No. 1	Dist #7 - Maoputasi No. 1
-ReportingUnit	American Samoa;Dist #8 - Maoputasi No. 2	Dist #8 - Maoputasi No. 2
-ReportingUnit	American Samoa;Dist #9 - Maoputasi No. 3	Dist #9 - Maoputasi No. 3
-ReportingUnit	American Samoa;Dist #10 - Maoputasi No. 4	Dist #10 - Maoputasi No. 4
-ReportingUnit	American Samoa;Dist #11 - Maoputasi No. 5	Dist #11 - Maoputasi No. 5
-ReportingUnit	American Samoa;Dist #12 - Ituau	Dist #12 - Ituau
-ReportingUnit	American Samoa;Dist #13 - Fofo	Dist #13 - Fofo
-ReportingUnit	American Samoa;Dist #14 - Alataua	Dist #14 - Alataua
-ReportingUnit	American Samoa;Dist #15 - Tualauta	Dist #15 - Tualauta
-ReportingUnit	American Samoa;Dist #16 - Tualatai	Dist #16 - Tualatai
-ReportingUnit	American Samoa;Dist #17 - Leasina	Dist #17 - Leasina
 Candidate	Aumua Amata	Aumua Amata
 Candidate	Meleagi Suitonu-Chapman	Meleagi Suitonu-Chapman
 Candidate	Oreta Tufaga-Mapu Crichton	Oreta Tufaga-Mapu Crichton
